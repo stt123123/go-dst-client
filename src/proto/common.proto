@@ -1,14 +1,35 @@
-syntax="proto2";
+syntax="proto3";
 
-package proto;
+package com.distkv.drpc.codec;
 
-option java_package="com.distkv.drpc.pb.generated";
-option java_outer_classname="CommonProtocol";
+import "google/protobuf/any.proto";
 
-enum Status {
-    OK = 0;
-    KEY_NOT_FOUND = 1;
-    UNKNOWN_ERROR = 2;
-    // The key of the dict is not found.
-    DICT_KEY_NOT_FOUND = 3;
+option java_package = "com.distkv.drpc.codec.generated";
+option java_outer_classname="DrpcProtocol";
+
+message Request {
+    int64 requestId = 1;
+    string interfaceName = 2;
+    string methodName = 3;
+    repeated google.protobuf.Any args = 4;
+};
+
+message Response {
+    int64 requestId = 1;
+    DrpcStatus status = 2;
+    oneof returnValue {
+        google.protobuf.Any result = 3;
+        string errorMessage = 4;
+    };
+};
+
+// We use HTTP-style status code.
+// 1xx
+// 2xx Ok.
+// 4xx Outer error. eg, Invoke en not exist method will get 404;
+// 5xx Inner error. eg, Exception thrown when method invoked will get 500;
+enum DrpcStatus {
+    OK = 0; // OK;
+    OUTER_ERROR = 1; // Outer error;
+    INNER_ERROR = 2; // Inner error;
 };
